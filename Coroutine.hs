@@ -36,15 +36,6 @@ instance Arrow Coroutine where
              let (c, co') = runC co b
              in ((c, d), first co')
 
-evalList :: Coroutine i o -> [i] -> [o]
-evalList _ [] = []
-evalList co (i:is) =
-  let (o, co') = runC co i
-  in o:evalList co' is
-
 scanC :: (a -> b -> a) -> a -> Coroutine b a
 scanC f i = Coroutine $ step i
   where step a b = let a' = f a b in (a', scanC f a')
-
-zipWithC :: (a -> b -> c) -> Coroutine (a, b) c
-zipWithC = arr . uncurry

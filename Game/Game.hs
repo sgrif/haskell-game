@@ -1,9 +1,11 @@
 module Game.Game where
 
-import Control.Category
+import Control.Category hiding ((.))
 import Control.Arrow (arr)
 import Control.Applicative
-import Data.Traversable
+import Data.Traversable (sequenceA)
+import Data.Monoid (Sum(..), getSum)
+import Graphics.UI.GLUT (Key(..))
 
 import Coroutine
 
@@ -26,20 +28,15 @@ ballVel :: Coroutine Keyboard Velocity
 ballVel = (,) <$> ballVelX <*> ballVelY
 
 ballVelX :: Coroutine Keyboard Double
-ballVelX =
-  arr keyboardDir where
-    keyboardDir kb
-      | isKeyDown kb left  = -0.01
-      | isKeyDown kb right = 0.01
-      | otherwise          = 0
+ballVelX = arr $ sumOfKeys [(left, -0.01), (right, 0.01)]
 
 ballVelY :: Coroutine Keyboard Double
-ballVelY =
-  arr keyboardDir where
-    keyboardDir kb
-      | isKeyDown kb down = -0.01
-      | isKeyDown kb up   = 0.01
-      | otherwise         = 0
+ballVelY = arr $ sumOfKeys [(down, -0.01), (up, 0.01)]
+
+sumOfKeys :: [(Key, Double)] -> Keyboard -> Double
+sumOfKeys pairs =
+  getSum . sumPressedKeys (map sumPair pairs)
+    where sumPair (key, val) = (key, Sum val)
 
 ball :: Coroutine Keyboard Rectangle
 ball = fmap (makeSquare ballSize) $ ballVel >>> ballPos
