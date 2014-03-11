@@ -23,8 +23,28 @@ ballSize = 0.1
 ballInitPos :: Point
 ballInitPos = Point 0 0
 
+halfSize :: Double
+halfSize = ballSize / 2
+
+leftWall :: Double
+leftWall = -1 + halfSize
+
+rightWall :: Double
+rightWall = 1 - halfSize
+
+bottomWall :: Double
+bottomWall = -1 + halfSize
+
+topWall :: Double
+topWall = 1 - halfSize
+
 ballPos :: Coroutine Velocity Point
-ballPos = scanC movePoint ballInitPos
+ballPos = scanC (\p -> movePoint p >>> boundBallPos) ballInitPos
+
+boundBallPos :: Point -> Point
+boundBallPos (Point x y) = Point boundedX boundedY where
+  boundedX = min rightWall $ max leftWall x
+  boundedY = min topWall $ max bottomWall y
 
 ballVel :: Coroutine Input Velocity
 ballVel = (,) <$> ballVelX <*> ballVelY
