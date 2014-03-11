@@ -4,7 +4,6 @@ import Control.Category hiding ((.))
 import Control.Arrow (arr)
 import Control.Applicative
 import Data.Traversable (sequenceA)
-import Data.Monoid (Sum(..), getSum)
 import Graphics.UI.GLUT (Key(..))
 
 import Coroutine
@@ -57,13 +56,8 @@ ballVelY = arr $ sumOfKeysByDelta [(down, -1), (up, 1)]
 
 sumOfKeysByDelta :: [(Key, Double)] -> Input -> Double
 sumOfKeysByDelta pairs (kb, delta) =
-  sumOfKeys (map applyDelta pairs) kb
+  sum $ valuesForPressedKeys kb (map applyDelta pairs)
     where applyDelta (key, val) = (key, val * delta)
-
-sumOfKeys :: [(Key, Double)] -> Keyboard -> Double
-sumOfKeys pairs =
-  getSum . sumPressedKeys (map sumPair pairs)
-    where sumPair (key, val) = (key, Sum val)
 
 ball :: Coroutine Input Rectangle
 ball = fmap (makeSquare ballSize) $ ballVel >>> ballPos
